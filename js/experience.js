@@ -28,8 +28,4 @@ function draw(now){const dt=Math.min((now-last)/1000,.035);last=now;ctx.clearRec
  }
  ctx.restore();raf=particles.length?requestAnimationFrame(draw):0;}
 const fired=new WeakSet();new MutationObserver(records=>{for(const r of records){const el=r.target;if(!el.matches?.('.note'))continue;const active=el.classList.contains('hit')||el.classList.contains('landing');if(active&&!fired.has(el)){fired.add(el);burst(el);}else if(!active)fired.delete(el);}}).observe(document.querySelector('#pages'),{subtree:true,attributes:true,attributeFilter:['class']});
-const guide=document.createElement('div');guide.id='typing-guide';guide.setAttribute('aria-hidden','true');guide.innerHTML='<kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><kbd>F</kbd>';document.querySelector('.workspace').append(guide);let began=false,finished=false;
- document.querySelector('#welcome').addEventListener('close',()=>{began=true;});
- setInterval(()=>{if(Jam.state.notes.length)finished=true;guide.hidden=!began||finished||!!document.querySelector('dialog[open]')||document.body.classList.contains('shared-view');},160);
- guide.hidden=true;
 })();

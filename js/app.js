@@ -172,7 +172,48 @@ function timedInput(id,y,accent=false,percussion=null){
  const count=s.notes.length;inputSymbol(id,y,accent,percussion,keyY);
  if(s.notes.length>count){const n=s.notes.at(-1);lastTypeBeat=n.row*8+n.x*8;lastTypeAt=now;lastWasOverlap=overlap;}
 }
-window.addEventListener('pointerdown',e=>{if(e.target.closest('#pages,#undo,#redo,#reset,#play,#restart'))resetTypeTiming();},true);
+const typingGuide=document.createElement('div');
+typingGuide.id='typing-guide';
+typingGuide.setAttribute('aria-hidden','true');
+typingGuide.innerHTML='<kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><kbd>F</kbd>';
+typingGuide.hidden=true;
+document.querySelector('.workspace').append(typingGuide);
+const touchOnly=matchMedia('(hover:none) and (pointer:coarse)');
+const startPracticeKeys='ASDF';
+let startPracticeOffered=false,startPracticeTimer;
+let startPracticeNotes=[];
+function finishStartPractice(){
+ if(typingGuide.hidden&&!startPracticeNotes.length)return;
+ clearTimeout(startPracticeTimer);
+ typingGuide.hidden=true;
+ startPracticeNotes=[];
+ drawGuides();
+}
+function beginStartPractice(){
+ if(startPracticeOffered||touchOnly.matches)return;
+ startPracticeOffered=true;
+ typingGuide.hidden=false;
+ startPracticeTimer=setTimeout(finishStartPractice,6500);
+}
+function tryStartPractice(key,mapped){
+ if(typingGuide.hidden)return false;
+ if(!mapped||key.length!==1||!startPracticeKeys.includes(key)||startPracticeNotes.length>=4){
+  finishStartPractice();
+  return false;
+ }
+ const group=Number(selectedKeyIcon.split('-')[0]);
+ const n={id:'start-practice-'+startPracticeNotes.length,icon:group+'-'+lastSlots[group],row:0,x:(1+2*startPracticeNotes.length)*PAD_STEP,y:mapped.y};
+ startPracticeNotes.push(n);
+ drawGuides();
+ preview(n);
+ clearTimeout(startPracticeTimer);
+ startPracticeTimer=setTimeout(finishStartPractice,startPracticeNotes.length===4?1600:3500);
+ return true;
+}
+window.addEventListener('pointerdown',e=>{
+ finishStartPractice();
+ if(e.target.closest('#pages,#undo,#redo,#reset,#play,#restart'))resetTypeTiming();
+},true);
 function deleteLastInput(){resetTypeTiming();if(!s.notes.length)return;pause();pos=0;push();const n=s.notes.pop();s.partCursors??={};s.partCursors[s.partGroup||0]={...inputCursor};s.partGroup=n.partGroup??Number(n.icon.split('-')[0]);selectedKeyIcon=s.partGroup+'-0';syncKeySelection();inputCursor={row:n.row,x:M.clamp(Math.round(n.x/PAD_STEP)*PAD_STEP,0,1-PAD_STEP),y:n.y};extra=0;render();drawInputCursor(true);save();}
 const supportedPunctuation=new Set("[];:'\",.<>/?\\|!@#$%^&*()_+-={}~`".split(''));
 function punctuationInput(symbol){
@@ -185,8 +226,9 @@ function punctuationInput(symbol){
 }
 document.addEventListener('keydown',e=>{
  if(e.metaKey||e.ctrlKey||e.altKey||viewing||inputMode!=='pad'||e.target.closest?.('input,textarea,select,[contenteditable],dialog')||document.querySelector('dialog[open]'))return;
- if(supportedPunctuation.has(e.key)||'，。？！、'.includes(e.key)){e.preventDefault();e.stopImmediatePropagation();if(!e.repeat)punctuationInput(e.key);return;}
  const k=(e.code?.replace(/^(Key|Digit|Numpad)/,'')||e.key).toUpperCase(),mapped=(s.pitchMode==='fixed'?fixedKeyMap:keyMap).get(k);
+ if(!e.repeat&&!e.isComposing&&!['Shift','Control','Alt','Meta','CapsLock'].includes(e.key)&&tryStartPractice(k,mapped)){e.preventDefault();e.stopImmediatePropagation();return;}
+ if(supportedPunctuation.has(e.key)||'，。？！、'.includes(e.key)){e.preventDefault();e.stopImmediatePropagation();if(!e.repeat)punctuationInput(e.key);return;}
  if(e.code==='Space'&&e.shiftKey){e.preventDefault();e.stopImmediatePropagation();if(!e.repeat)(playing?pause():play());return;}if(e.code==='Space'){resetTypeTiming();e.preventDefault();e.stopImmediatePropagation();if(!e.repeat){pause();inputCursor=nextSlot(inputCursor);inputCursor.row=Math.min(inputCursor.row,M.MAX-1);extra=Math.max(extra,M.pageOf(inputCursor.row)+1);render();drawInputCursor(true);remember();}}
  else if(/^[1-6]$/.test(k)){e.preventDefault();e.stopImmediatePropagation();if(!e.repeat)openKeyPicker(Number(k)-1);}
  else if(mapped){e.preventDefault();e.stopImmediatePropagation();if(!e.repeat){const group=randomInstruments?Math.floor(Math.random()*6):Number(selectedKeyIcon.split('-')[0]);timedInput(group+'-'+lastSlots[group],mapped.y);if(s.pitchMode==='fixed')reactKey(k);}}
@@ -341,9 +383,23 @@ function showGhost(e){
  const tmp={id:'ghost',icon:chosen,row:q.row,x:q.x,y:q.y};s.notes.push(tmp);let off;try{off=visualOffsets().get('ghost');}finally{s.notes.pop();}
  ghost.style.left=(M.xOf(q.x)+(off?.dx||0)-part*642/divisions)*staffScaleX+'px';ghost.style.top=M.yOf(q.y)+(off?.dy||0)+'px';if(ghost.parentElement!==row)row.append(ghost);}
 $('pages').addEventListener('pointermove',showGhost);$('pages').addEventListener('pointerleave',hideGhost);$('pages').addEventListener('pointerdown',hideGhost);
-// Tutorial guides: faint symbols at preset spots that keys snap onto (js/tutorial.js). Redrawn after every render.
+// Practice and tutorial previews are rendered separately from the score.
 let guideNotes=[];
-function drawGuides(){document.querySelectorAll('.note-guide').forEach(e=>e.remove());for(const g of guideNotes){const part=segmentOf(g.x),row=document.querySelector(`.staff[data-row="${g.row}"][data-part="${part}"]`);if(!row)continue;const el=document.createElement('div');el.className='note note-ghost note-guide';el.setAttribute('aria-hidden','true');el.innerHTML=`<span class="shape" style="width:26px;height:26px">${noteUse({id:'guide',icon:g.icon})}</span>`;el.style.left=(M.xOf(g.x)-part*642/divisions)*staffScaleX+'px';el.style.top=M.yOf(g.y)+'px';row.append(el);}}
+function drawGuides(){
+ document.querySelectorAll('.note-guide').forEach(el=>el.remove());
+ for(const g of [...guideNotes,...startPracticeNotes]){
+  const part=segmentOf(g.x),row=document.querySelector(`.staff[data-row="${g.row}"][data-part="${part}"]`);
+  if(!row)continue;
+  const el=document.createElement('div');
+  el.className='note note-ghost note-guide';
+  if(g.id?.startsWith('start-practice-'))el.classList.add('note-start-practice');
+  el.setAttribute('aria-hidden','true');
+  el.innerHTML=`<span class="shape" style="width:26px;height:26px">${noteUse({id:g.id||'guide',icon:g.icon})}</span>`;
+  el.style.left=(M.xOf(g.x)-part*642/divisions)*staffScaleX+'px';
+  el.style.top=M.yOf(g.y)+'px';
+  row.append(el);
+ }
+}
 function addNote(g){const group=icons.get(g.icon).group,pool=JamVoicePools[group];const n={id:g.id||'n'+Date.now().toString(36)+Math.random().toString(36).slice(2,7),icon:g.icon,row:g.row,x:g.x,y:g.y,...(pool?{voice:pool[Math.floor(Math.random()*pool.length)]}:{})};s.notes.push(n);render();preview(n);return n;}
 const stampInterval = 90;
 const viewport = $('viewport');
@@ -591,9 +647,12 @@ $('start').onclick=()=>{
  end(true);pause();undo.length=0;redo.length=0;
  sharedSession=false;viewing=false;editorScroll=0;
  clearScore();resetNativeTyping();window.JamEaster.resetCollection();
- applyViewMode();enterEditor();
+ applyViewMode();enterEditor();beginStartPractice();
 };
-$('welcome-tutorial').addEventListener('click',enterEditor);
+$('welcome-tutorial').addEventListener('click',()=>{
+ finishStartPractice();
+ enterEditor();
+});
 if(invitedStudy){
  const start=$('start'),finish=$('research-finish'),hint=$('research-hint');
  $('research-actions').hidden=false;

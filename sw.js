@@ -1,4 +1,4 @@
-const cacheName = 'mobile12-playjam-v57';
+const cacheName = 'mobile12-playjam-v58';
 const files = ['./', './index.html', './css/app.css', './js/icons.js', './assets/audio/bank.js',
   './js/audio.js', './js/candidates.js', './js/harmony.js', './js/model.js', './js/diverse.js', './js/themes.js',
   './js/app.js', './js/jelly.js', './js/experience.js', './js/install.js', './js/easter.js', './js/tutorial.js','./js/save.js', './js/staff-sparkles.js',
