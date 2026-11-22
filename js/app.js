@@ -595,7 +595,8 @@ $('start').onclick=()=>{
 };
 $('welcome-tutorial').addEventListener('click',enterEditor);
 if(invitedStudy){
- const start=$('start'),finish=$('research-finish');
+ const start=$('start'),finish=$('research-finish'),hint=$('research-hint');
+ $('research-actions').hidden=false;
  $('research-intro').hidden=false;
  start.textContent='체험 시작';
  start.setAttribute('aria-describedby','research-intro');
@@ -617,10 +618,32 @@ if(invitedStudy){
   window.clarity?.('set','playjam_study_code',studyCode);
   if(event)window.clarity?.('event',event);
  };
- if(entered)trackInviteEvent();
- start.addEventListener('click',()=>trackInviteEvent('invite_experience_start'));
+ const hintKey='playjam.invite.survey-hint';
+ let hintShown=false,hintTimer;
+ try{hintShown=sessionStorage.getItem(hintKey)===studyCode;}catch{}
+ const hideSurveyHint=()=>{
+  hint.hidden=true;
+  clearTimeout(hintTimer);
+ };
+ const showSurveyHint=()=>{
+  if(hintShown)return;
+  hintShown=true;
+  try{sessionStorage.setItem(hintKey,studyCode);}catch{}
+  hint.hidden=false;
+  hintTimer=setTimeout(hideSurveyHint,4800);
+ };
+ if(entered){
+  trackInviteEvent();
+  if(!viewing)showSurveyHint();
+ }
+ start.addEventListener('click',()=>{
+  trackInviteEvent('invite_experience_start');
+  showSurveyHint();
+ });
+ window.addEventListener('playjam:tutorial-ended',showSurveyHint);
  $('welcome-tutorial').addEventListener('click',()=>trackInviteEvent('invite_tutorial_start'));
  finish.addEventListener('click',()=>{
+  hideSurveyHint();
   pause();
   remember();
   trackInviteEvent('invite_survey_click');

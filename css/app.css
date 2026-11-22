@@ -1348,6 +1348,7 @@ body.collapsed .workspace-header{padding-left:14px!important}
 #research-intro strong {font-size:15px}
 #research-intro p {margin:5px 0 0}
 #research-intro p:last-child {font-size:11px;color:#bcbcbc}
+#research-actions:not([hidden]) {display:inline-flex;position:relative;flex:none}
 #research-finish:not([hidden]) {
  display:inline-flex;
  align-items:center;
@@ -1361,7 +1362,39 @@ body.collapsed .workspace-header{padding-left:14px!important}
  border-radius:999px;
 }
 #research-finish:hover,#research-finish:focus-visible {border-color:#eee;background:#ffffff14}
-body.coach-on #research-finish {display:none}
+#research-actions:has(#research-hint:not([hidden])) #research-finish {
+ border-color:#eee;
+ background:#ffffff14;
+}
+#research-hint:not([hidden]) {
+ position:absolute;
+ top:calc(100% + 8px);
+ right:0;
+ z-index:2;
+ width:max-content;
+ max-width:min(172px,calc(100vw - 32px));
+ padding:6px 9px;
+ border:1px solid #777;
+ border-radius:6px;
+ background:#242424;
+ color:#eee;
+ font:11px/1.4 system-ui,sans-serif;
+ text-align:left;
+ pointer-events:none;
+}
+#research-hint:not([hidden])::before {
+ content:'';
+ position:absolute;
+ top:-4px;
+ right:20px;
+ width:6px;
+ height:6px;
+ transform:rotate(45deg);
+ border-top:1px solid #777;
+ border-left:1px solid #777;
+ background:inherit;
+}
+body.coach-on #research-actions {display:none}
 @media(max-width:600px) {
  #research-finish:not([hidden]) {padding-inline:7px;font-size:11px}
  #research-finish .research-finish-label {display:none}

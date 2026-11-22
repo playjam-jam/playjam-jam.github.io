@@ -342,6 +342,7 @@ function finish(completed){
   window.JamEaster?.say?.('타이핑 연주 중 겨울 단어를 발견해보세요','',{ms:3800,compact:!mobile.matches,snowflake:true});
   hintHelp();
  }
+ window.dispatchEvent(new Event('playjam:tutorial-ended'));
 }
 // After finishing, the ? (help) button glows softly for ~3s, without a number — a light hint, not a step.
 function hintHelp(){setTimeout(()=>{const t=$('help');if(i>=0||!t||!ring)return;const r=t.getBoundingClientRect(),d=Math.max(r.width,r.height)+30;
