@@ -1,7 +1,7 @@
-const cacheName = 'mobile12-playjam-v59';
+const cacheName = 'mobile12-playjam-v60';
 const files = ['./', './index.html', './css/app.css', './js/icons.js', './assets/audio/bank.js',
   './js/audio.js', './js/candidates.js', './js/harmony.js', './js/model.js', './js/diverse.js', './js/themes.js',
-  './js/app.js', './js/jelly.js', './js/experience.js', './js/install.js', './js/easter.js', './js/tutorial.js','./js/save.js', './js/staff-sparkles.js',
+  './js/app.js', './js/jelly.js', './js/experience.js', './js/install.js', './js/language.js', './js/easter.js', './js/tutorial.js','./js/save.js', './js/staff-sparkles.js',
   './manifest.webmanifest', './app-icon.png', './app-icon-192.png'];
 
 self.addEventListener('install', event => {
