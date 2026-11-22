@@ -15,7 +15,7 @@ const EGGS=[
  {id:'snowman',name:'눈사람',keys:['SNSTKFKA','SNOWMAN']},
  {id:'santa',name:'산타',keys:['TKSXK','SANTA']},
  {id:'rudolph',name:'루돌프',keys:['FNEHFVM','RUDOLPH']},
- {id:'bungeoppang',name:'붕어빵',keys:['QNDDJQKD']},
+ {id:'bungeoppang',name:'붕어빵',keys:['QNDDJQKD','BUNGEOPPANG','FISHBREAD']},
  {id:'gift',name:'선물',keys:['TJSANF','GIFT']},
  {id:'snowflake',name:'눈송이',keys:['SNSTHDDL','SNOWFLAKE']},
  {id:'snowglobe',name:'스노우볼',keys:['TMSHDNQHF','SNOWGLOBE']},
